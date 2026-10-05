@@ -1,0 +1,232 @@
+6. ExamCraft Technical Spec
+
+6.1 Introduction
+
+ExamCraft is a web application that allows users to collect course materials, select sources, generate ranked mock exams, and take an exam in a timed practice mode. It is a controlled, multi-stage agentic workflow that converts learning materials into traceable mock exams, while deterministic controls enforce permissions, evidence provenance, schemas, evaluation gates, and user approval.
+
+The Minimum Viable Product (MVP) will focus on HKU courses. To keep it simple and avoid retaining user history, it will run as a one-off workflow: files and workflow state exist temporarily while the user is using the application, then are deleted.
+
+6.2.1 Main Architecture
+
+MVP Frontend (User Interface): Python Streamlit  
+Possible Future Frontend: React.js  
+Agentic AI Framework: LangGraph  
+Temporary State: LangGraph InMemorySaver and a per-run temporary workspace
+
+Streamlit is selected for the minimum viable product (MVP) because it can provide file upload, material selection, generation progress, downloads, and timed practice in one Python application. React.js may be considered in a later production version if a more advanced user interface is required.
+
+6.2.2 Libraries or Tools
+
+- Browser tool: Playwright
+- Document tools: Docling and PyMuPDF
+- OCR tools: OCRmyPDF and Tesseract
+- Schema validation: Pydantic
+- Agent orchestration: LangGraph
+- PDF export: WeasyPrint
+- AI model access: approved official AI provider or approved local model; OpenRouter may be used only if its data-handling terms are approved
+- Temporary retrieval: in-memory text chunks with document and page references
+
+The libraries and tools listed are intended for planned use and may be changed after feasibility testing. The initial MVP supports user-uploaded PDF and text files. Playwright source collection and OCR are planned as advanced features; scanned or poor-text PDFs are flagged for manual handling until OCR is enabled.
+
+6.2.3 Agentic AI Definition
+
+ExamCraft is an Agentic AI system because it does more than send one prompt to an AI model. The system uses a group of specialized agents to pursue the goal of producing source-grounded mock exams. The agents can:
+
+- Create a plan based on the selected course materials and user request.
+- Delegate different generation tasks to specialist agents.
+- Use approved retrieval and validation tools.
+- Store structured workflow state between steps.
+- Review results and choose whether to pass, repair, reject, or replan.
+- Adapt the generation plan when repeated failures are detected.
+- Stop at fixed retry and cost limits.
+- Pause for human review before final export.
+
+The agents operate only within application-defined permissions. Deterministic code remains responsible for access control, schema validation, arithmetic, retry limits, scoring, file handling, and cleanup.
+
+6.3 Workflow
+
+6.3.1 Frontend User Course Entry and File Upload
+
+The user uploads course materials in PDF or text format. The app validates the file type, file size, and request settings. It then starts a LangGraph run with a unique thread ID and creates a temporary per-run workspace.
+
+The automated source collection is optional and limited to authorized HKU sources. The user enters a course code, and LangGraph invokes the Source Collection agent with the Playwright tool. User upload remains available when authorized automated collection cannot be used.
+
+6.3.2 Source Collection
+
+AI: Source Collection agent
+
+The Source Collection agent may use Playwright to search and retrieve relevant files from authorized sources. Source domains, browser actions, file types, timeouts, and download locations must be explicitly allowed by the application.
+
+The agent cannot bypass authentication, multi-factor authentication, access controls, or website restrictions. If automated retrieval is unavailable, the system returns to user upload instead of attempting unauthorized access.
+
+6.3.3 Document Extraction and Classification
+
+AI: Document-processing agent
+
+The Document-processing agent receives authorized retrieved or uploaded files and invokes processing tools as needed:
+
+- Check file type, file size, and processing limits.
+- Use Docling/PyMuPDF for text, page structure, tables, and layout.
+- When the optional OCR feature is enabled, request OCRmyPDF/Tesseract when text extraction is absent or poor.
+- Return extracted content and processing warnings to the workflow.
+- Classify document type, topics, language, and supported metadata.
+- Validate normalized results with Pydantic.
+- Save canonical JSON and readable Markdown in the temporary workspace.
+
+Do not infer missing authors, dates, or other metadata without evidence. Keep document IDs and page-level references so generated questions can be traced to the selected source materials.
+
+Treat all document content as untrusted input. Instructions inside uploaded or retrieved documents cannot change agent permissions, system instructions, or tool access.
+
+6.3.4 User Review and Material Selection
+
+Present a selectable list with filename, source, document type, author and year when known, brief summary, topics, and processing warnings. LangGraph pauses for the user's selection using an interrupt and resumes with selected document IDs.
+
+The user manually selects the materials to be used for mock-exam generation. The user may also enter optional exam settings, including exam duration, total marks, question types, and the preferred difficulty distribution. The system uses documented default settings when optional values are not provided.
+
+The in-memory workflow will not survive an application restart. Uploaded and generated files are retained only for the active run and are deleted when the run is completed, cancelled, or expired. Startup or periodic time-to-live cleanup also removes abandoned temporary workspaces after crashes or restarts.
+
+6.3.5 Five-Agent Mock Exam Group
+
+AI: Planner, Writer A, Writer B, Critic, and Editor-Selector
+
+The five agents are logical roles. They may use the same approved AI model with different system prompts, tool permissions, parameters, and structured output schemas. Five separate commercial AI models are not required.
+
+Planner Agent
+
+The Planner Agent creates an exam blueprint from the selected materials and user settings. The blueprint includes:
+
+- Topic and learning-outcome coverage
+- Question types and number of questions
+- Difficulty distribution
+- Cognitive-level distribution when requested
+- Total marks and marks per question
+- Duration and estimated completion time
+- Required question-pool size
+- Task assignments for Writer A and Writer B
+
+If repeated failures show that the original plan cannot be supported by the materials, the Planner changes the task allocation or question mix. It cannot lower the quality threshold or increase the retry limit.
+
+#### Writer A Agent
+
+Writer A generates objective and concise questions, such as multiple-choice, true/false, and short-answer questions. It receives only its assigned tasks and relevant passages from the selected materials.
+
+Each question must contain a proposed answer, explanation, marks, difficulty, topic, estimated completion time, and source references. Multiple-choice distractors must be plausible but unambiguously incorrect.
+
+#### Writer B Agent
+
+Writer B generates analytical questions, such as essay, calculation, and case study questions. It receives only its assigned tasks and relevant passages.
+
+Each open-ended question must include marking guidance. Calculation questions must contain required assumptions, units, intermediate reasoning, and an acceptable tolerance when appropriate.
+
+Writer A and Writer B run in parallel to improve efficiency and question diversity. They cannot approve or rank their own questions.
+
+#### Critic Agent
+
+The Critic Agent acts as an independent examiner and student. It reviews every question against the source material and blueprint. It checks:
+
+- Whether the question can be answered from the selected materials
+- Whether the proposed answer is correct and unique
+- Whether the source reference supports the question and answer
+- Whether the wording is complete and unambiguous
+- Whether difficulty, marks, and estimated time are realistic
+- Whether the marking guidance is sufficient
+- Whether the question duplicates or reveals another question or answer
+
+The Critic returns one structured decision: pass, repair, reject, or replan. After assembly, it returns one of these decisions for each complete exam. Only exams that pass the final review proceed to ranking and export.
+
+#### Editor-Selector Agent
+
+The Editor-Selector Agent has two separate modes.
+
+In repair mode, it revises only the fields identified by the Critic. Every repair creates a new question version and returns to validation and Critic review.
+
+In assembly mode, it selects only approved question versions and assembles up to ten mock exams. Each exam must satisfy the blueprint while maintaining variation across question combinations. It cannot override a Critic rejection or a deterministic validation failure.
+
+### 6.3.6 Validation, Repair, and Replanning
+
+Pydantic validates the structure and data types of all generated questions. Custom deterministic application code validates arithmetic, references, and other rule-based requirements before and after Critic review. The Critic evaluates semantic qualities that cannot be established by schema validation.
+
+The validation includes:
+
+- Required JSON schema and fields
+- Correct total marks and positive marks per question
+- Answer keys, explanations, and marking guidance
+- Topic, question-type, and difficulty coverage
+- Traceable references to selected source documents and pages
+- Valid options for objective questions
+- Duplicate and near-duplicate detection
+- Separation of student questions and answer keys
+
+The workflow uses the following routes:
+
+- Pass: add the question to the approved pool.
+- Repair: send the question to the Editor-Selector and review it again.
+- Reject: discard the question and request a replacement if required.
+- Replan: send an aggregated failure summary to the Planner.
+
+The MVP permits a maximum of two generation rounds and two repair rounds for each question. If the quality threshold cannot be reached, the system reports how many valid exams can be produced instead of including weak questions.
+
+### 6.3.7 Exam Ranking
+
+Only exams that pass all hard validation checks can be ranked. The application uses a fixed scoring rubric (Sample Only):
+
+- Topic coverage: 25%
+- Difficulty balance: 20%
+- Clarity: 20%
+- Question diversity: 15%
+- Cognitive-level balance: 10%
+- Time and mark balance: 10%
+
+Answer correctness and source grounding are hard workflow requirements and are not compensated by a higher score in another category. Deterministic code aggregates the rubric scores, but judgement-based inputs such as clarity and difficulty come from structured Critic assessments. Therefore, the final score is reproducible from its inputs but is not entirely objective. The Editor-Selector provides a short explanation based on the validated results.
+
+The sample weights must be calibrated against an instructor-reviewed benchmark before they are treated as final evaluation criteria.
+
+Past-paper pattern insights are optional and are not part of the MVP. If they are added, the system must state the sample size and period and describe the results as observations rather than predictions.
+
+### 6.3.8 Human Review and Approval
+
+Before export, the system pauses for user review. The interface displays:
+
+- Exam blueprint and coverage summary
+- Source references
+- Validation and Critic results
+- Repair history and warnings
+- Final ranking and ranking explanation
+
+The user may approve the result, reject it, or request one targeted regeneration. The application must block approval of an exam that fails a hard validation requirement. User approval confirms acceptance of the practice material; it does not replace expert verification or make the exam an official assessment.
+
+6.3.9 Export
+
+Use the same validated exam object for both formats:
+
+- PDF: printable student exam and a separate answer key or marking guide.
+- JSON: versioned machine-readable exam data for timed practice and future use.
+
+Use a fixed, application-controlled HTML layout for PDF generation. An AI component must not generate executable HTML or JavaScript. Student-facing files must not contain hidden answer-key fields.
+
+6.3.10 Timed Practice
+
+AI: Practice Feedback agent
+
+Render the selected exam in Streamlit from validated student JSON. Do not expose the answer key before submission. Maintain answers and timing only for the active run.
+
+The practice interface should provide autosave within the active in-memory session, visible progress, manual submission, and a warning before time expires. The server records the start and submission times and enforces the deadline when processing autosaves and submissions; the client-side countdown is informational. Autosaved answers will not survive a server restart unless persistent storage is added.
+
+Auto-grade objective questions such as multiple-choice and true/false. Numeric answers require explicit tolerances. If the optional Practice Feedback agent is enabled, essay answers may receive clearly labelled AI-assisted feedback; it must not be presented as an official grade. The practice mode is for self-study, not proctored or high-stakes assessment.
+
+## 6.4 AI Components
+
+The labels identify distinct components or roles in the workflow. They do not require a different commercial model for every label. Multiple agents may use the same approved provider with different prompts, tools, parameters, and structured output schemas.
+
+- Source Collection agent: optional authorized collection using Playwright
+- Document-processing agent: extraction, OCR requests, classification, and metadata
+- Planner Agent: exam blueprint, task delegation, and adaptive replanning
+- Writer A Agent: objective and concise question generation
+- Writer B Agent: analytical question generation and marking guidance
+- Critic Agent: independent solving, grounding checks, and quality decisions
+- Editor-Selector Agent: controlled repair, exam assembly, and explanation
+- Practice Feedback agent: optional post-submission learning feedback
+
+The five-agent group refers specifically to the Planner, two Writers, Critic, and Editor-Selector. Source collection, document processing, and practice feedback are supporting components outside this group.
+
+The deterministic application code remains responsible for schemas, permissions, output paths, retry limits, cleanup, arithmetic, duplicate checks, ranking calculations, and objective answer scoring. Treat AI outputs as proposals until they pass validation and human approval.
