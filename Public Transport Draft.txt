@@ -1,0 +1,118 @@
+2021 Population Census: statistics and boundaries of District Council districts
+https://data.gov.hk/tc-data/dataset/hk-censtatd-census_geo-2021-population-census-by-dcd
+
+2016 Population By-census (Statistics and Boundaries of District Council Districts)
+https://data.gov.hk/en-data/dataset/hk-censtatd-census_geo-2016-population-bycensus-by-dcd
+
+District boundary
+https://data.gov.hk/en-data/dataset/hk-had-json1-hong-kong-administrative-boundaries
+https://portal.csdi.gov.hk/geoportal/?datasetId=had_rcd_1634523272907_75218&lang=en
+
+Bus Route
+https://static.csdi.gov.hk/csdi-webpage/download/7faa97a82780505c9673c4ba128fbfed/geojson
+
+Coordinate of Bus Stop Location
+https://static.csdi.gov.hk/csdi-webpage/download/6a20951f9a1f5c1d981e80d8a45d141c/geojson
+
+Routes and fares of public transport (GeoJSON)
+https://data.gov.hk/tc-data/dataset/hk-td-tis_23-routes-fares-geojson
+
+MTR routes, fares and barrier-free facilities
+https://data.gov.hk/en-data/dataset/mtr-data-routes-fares-barrier-free-facilities
+
+Railways of Hong Kong
+https://data.humdata.org/dataset/hotosm_hkg_railways#activity
+
+Monthly Traffic and Transport Digest
+https://data.gov.hk/en-data/dataset/hk-td-tis_10-monthly-traffic-and-transport-digest
+
+
+Census and Statistics Department. (n.d.). 2016 population by-census (statistics and boundaries of District Council districts) [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/en-data/dataset/hk-censtatd-census_geo-2016-population-bycensus-by-dcd
+Census and Statistics Department. (n.d.). 2021 population census (statistics and boundaries of District Council districts) [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/en-data/dataset/hk-censtatd-census_geo-2021-population-census-by-dcd
+Home Affairs Department. (n.d.). District boundary [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/en-data/dataset/hk-had-json1-hong-kong-administrative-boundaries
+Humanitarian OpenStreetMap Team. (n.d.). Railways of Hong Kong [Data set]. Humanitarian Data Exchange. Retrieved October 1, 2026, from https://data.humdata.org/dataset/hotosm_hkg_railways
+MTR Corporation Limited. (n.d.). MTR routes, fares and barrier-free facilities [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/en-data/dataset/mtr-data-routes-fares-barrier-free-facilities
+Transport Department. (n.d.). Bus route [Data set]. Common Spatial Data Infrastructure Portal. Retrieved October 1, 2026, from https://static.csdi.gov.hk/csdi-webpage/download/7faa97a82780505c9673c4ba128fbfed/geojson
+Transport Department. (n.d.). Coordinate of bus stop location [Data set]. Common Spatial Data Infrastructure Portal. Retrieved October 1, 2026, from https://static.csdi.gov.hk/csdi-webpage/download/6a20951f9a1f5c1d981e80d8a45d141c/geojson
+Transport Department. (n.d.). Monthly traffic and transport digest [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/en-data/dataset/hk-td-tis_10-monthly-traffic-and-transport-digest
+Transport Department. (n.d.). Routes and fares of public transport (GeoJSON) [Data set]. DATA.GOV.HK. Retrieved October 1, 2026, from https://data.gov.hk/tc-data/dataset/hk-td-tis_23-routes-fares-geojson
+
+Common Hong Kong 18 District Datasets
+These datasets provide the common geographic and demographic foundation for all project sectors. They allow hospital, elderly services, libraries, recreation facilities, and public transport resources to be compared consistently across Hong Kong’s 18 districts.
+
+There are two main types of common datasets:
+
+1. Population Census Data
+2016 Population By-census: Statistics and Boundaries of District Council Districts
+2021 Population Census: Statistics and Boundaries of District Council Districts
+These datasets provide comprehensive district-level information, including population size, age, sex, household income, employment status, education, and housing characteristics. The data can be used to normalize resource provision, such as calculating the number of facilities per 10,000 residents, and to examine relationships between public-resource distribution and demographic or socioeconomic conditions.
+
+Using both the 2016 and 2021 datasets also allows the group to analyze changes in population characteristics and resource demand over time.
+
+2. District Boundary Data
+Hong Kong Administrative Boundaries
+Hong Kong 18 District Boundary Data from the Common Spatial Data Infrastructure Portal
+These geographic datasets define the boundaries of Hong Kong’s 18 districts. They will be used to assign facilities and transport services to their corresponding districts and to create choropleth maps and other district-based visualizations.
+
+The same district boundaries will be used across all sectors to ensure that comparisons are geographically consistent.
+
+Public Transport Datasets
+The public transport datasets contain geographic network data and service statistics for Hong Kong’s bus and railway systems. They will be combined with census data to evaluate the distribution, accessibility, and adequacy of public transport in each district.
+
+There are two main types of public transport data:
+
+1. Geographic Data
+Bus routes
+Coordinates of bus stop locations
+Railways of Hong Kong
+Routes and fares of public transport in GeoJSON format
+These datasets provide the geographic locations and network structures of bus routes, bus stops, and railway lines. They will be used to create maps showing the spatial distribution and coverage of public transport across the 18 districts.
+
+The geographic analysis can identify districts with dense or limited transport coverage. It can also examine relationships between transport availability and district population, employment, income, and other demographic characteristics.
+
+2. Service and Statistical Data
+MTR routes, fares, and barrier-free facilities
+Routes and fares of public transport
+Monthly Traffic and Transport Digest
+These datasets provide information about routes, fares, accessibility facilities, passenger usage, and changes in transport activity over time. They will support visualizations such as bar charts, time-series charts, accessibility comparisons, and per-capita transport indicators.
+
+By combining these datasets with district population and socioeconomic data, the project can compare:
+
+The number of MTR stations, bus stops, and routes in each district
+The number of residents served by each station, stop, or route
+Differences in transport availability between districts
+Relationships between transport provision, population, household income, and employment
+Districts that may have insufficient transport coverage or accessibility facilities
+
+
+
+## Public Transport Methodology
+
+Python will be used to process the datasets and create two main types of visualizations: geographic maps and statistical charts.
+
+### 1. Geographic Visualizations
+
+GeoPandas, Folium, and Plotly will be used to create geographic maps showing the distribution of public transport across Hong Kong’s 18 districts. District-boundary data will be combined with the locations of bus stops, bus routes, MTR stations, and railway lines.
+
+The geographic visualizations will include:
+
+- Interactive maps of bus stops, bus routes, MTR stations, and railway lines  
+- Choropleth maps showing the number of transport facilities in each district  
+- Per-capita maps showing bus stops, routes, or MTR stations per 10,000 residents  
+- Accessibility maps identifying districts with relatively limited transport coverage  
+
+These maps will help identify differences in transport distribution and possible underserved areas.
+
+### 2. Statistical Visualizations
+
+Pandas will be used to calculate district-level indicators, while Matplotlib, Seaborn, and Plotly will be used to create statistical charts.
+
+The statistical visualizations will include:
+
+- Bar charts comparing transport facilities and routes across districts  
+- Scatter plots examining relationships between transport provision and population, income, or employment  
+- Time-series charts showing changes in passenger usage and transport activity  
+- Charts comparing the availability of barrier-free MTR facilities  
+- Supply–demand charts identifying districts with large populations but limited transport resources  
+
+The geographic maps and statistical charts will be combined to evaluate whether public transport resources are distributed fairly and sufficiently across Hong Kong’s districts. The final visualizations may be presented in an interactive dashboard using Streamlit or Dash.
